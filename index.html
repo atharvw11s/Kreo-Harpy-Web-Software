@@ -1,1 +1,78 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Kreo Harpy Mouse Configurator</title>
+  <link rel="stylesheet" href="css/style.css" />
+</head>
+<body>
+  <header>
+    <h1>Kreo Harpy Mouse Configurator</h1>
+    <button id="connect-usb-btn" onclick="connectToMouse()">Connect Mouse</button>
+    <span id="connection-status-dot" class="status-dot disconnected"></span>
+    <span id="connection-status-text" class="status-text disconnected">Disconnected</span>
+  </header>
+
+  <main>
+    <section id="dashboard" class="page active">
+      <h2>My Connected Devices</h2>
+      <!-- Show device info here -->
+      <div id="device-info">No device connected.</div>
+      <a href="#config" class="button" id="view-config-link" style="display:none;">View Config</a>
+    </section>
+
+    <section id="config" class="page">
+      <h2>Harpy Configuration</h2>
+
+      <nav class="tabs">
+        <button class="tab active" data-tab="dpi">DPI / Sensitivity</button>
+        <button class="tab" data-tab="buttons">Button Mapping</button>
+        <button class="tab" data-tab="rgb">RGB Lighting</button>
+      </nav>
+
+      <section id="dpi" class="tab-content active">
+        <!-- Polling rate selectors -->
+        <div class="polling-rate">
+          <label><input type="radio" name="polling" value="125" checked> 125 Hz</label>
+          <label><input type="radio" name="polling" value="250"> 250 Hz</label>
+          <label><input type="radio" name="polling" value="500"> 500 Hz</label>
+          <label><input type="radio" name="polling" value="1000"> 1000 Hz</label>
+        </div>
+
+        <!-- DPI Profiles -->
+        <div class="dpi-profiles">
+          <button class="profile active" data-profile="general">General</button>
+          <button class="profile" data-profile="fps">FPS</button>
+          <button class="profile" data-profile="mmo">MMO</button>
+        </div>
+
+        <!-- DPI Values -->
+        <div id="dpi-values">
+          <!-- To be dynamically filled by JS -->
+        </div>
+      </section>
+
+      <section id="buttons" class="tab-content">
+        <h3>Button Mapping</h3>
+        <!-- Placeholder mouse SVG or image -->
+        <img src="images/harpy-mouse.png" alt="Harpy mouse layout" />
+        <div id="button-mapping-area">
+          <!-- Button remapping UI here -->
+          <p>Select a button to remap...</p>
+        </div>
+      </section>
+
+      <section id="rgb" class="tab-content">
+        <h3>RGB Lighting</h3>
+        <p>RGB controls and settings coming soon.</p>
+      </section>
+
+      <a href="#" class="button" id="back-to-dashboard">Back to Dashboard</a>
+    </section>
+  </main>
+
+  <script src="js/script.js" defer></script>
+</body>
+</html>
 
