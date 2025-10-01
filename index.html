@@ -6,48 +6,79 @@
     <title>Kreo Harpy Software</title>
     <!-- Load Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
-    
-    <!-- INLINE TAILWIND CONFIGURATION -->
+    <!-- Custom Tailwind Configuration for the accent color and font -->
     <script>
         tailwind.config = {
             theme: {
                 extend: {
                     colors: {
-                        'kreo-dark': '#111827', // Dark background
-                        'kreo-card': '#1f2937', // Card background (slightly lighter)
-                        'kreo-accent': '#9333ea', // Purple/Violet accent
-                        'kreo-connected': '#10b981', // Green for status
+                        'kreo-dark': '#0d0d0d',
+                        'kreo-card': '#1a1a1a',
+                        'kreo-accent': '#6600FF', 
+                        'kreo-connected': '#00ff73',
+                        'kreo-off-gray': '#4b5563',
                     },
                     fontFamily: {
                         sans: ['Inter', 'sans-serif'],
-                    }
+                    },
                 }
             }
         }
     </script>
-
-    <!-- INLINE CUSTOM CSS STYLES -->
+    <!-- Use Inter font and necessary CSS fixes -->
     <style>
-        .mouse-button {
-            cursor: pointer;
-            transition: fill 0.15s, stroke 0.15s;
-            opacity: 0.8;
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@100..900&display=swap');
+        
+        /* === PAGE SWITCHING LOGIC (CSS ONLY for Main Views) === */
+        /* Used for transitioning between Dashboard and Config Page */
+        #config-page {
+            display: none;
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            min-height: 100vh;
+            background-color: #0d0d0d;
         }
-
-        .mouse-button:hover {
-            opacity: 1;
-            stroke: #9333ea !important; /* kreo-accent */
+        #config-page:target {
+            display: block;
         }
-
-        .mouse-button.selected {
-            opacity: 1;
-            fill: #9333ea !important; /* kreo-accent */
-            stroke: #c4b5fd !important; /* lighter accent */
-            box-shadow: 0 0 10px rgba(147, 51, 234, 0.7);
+        #config-page:target + #dashboard {
+            display: none;
         }
-
+        
+        /* === DASHBOARD CARD GLOW === */
+        .product-card-glow {
+            transition: all 0.2s ease-out;
+            border: 2px solid transparent;
+        }
         .product-card-glow:hover {
-            box-shadow: 0 10px 15px -3px rgba(147, 51, 234, 0.3), 0 4px 6px -2px rgba(147, 51, 234, 0.2);
+            border-color: #6600FF;
+            box-shadow: 0 0 15px rgba(102, 0, 255, 0.6), 0 0 5px rgba(102, 0, 255, 0.4);
+            transform: translateY(-2px);
+        }
+
+        /* Responsive Container */
+        .container {
+            max-width: 1200px;
+            margin-left: auto;
+            margin-right: auto;
+            padding: 1rem;
+        }
+
+        /* SVG Button Styles */
+        .mouse-button {
+            transition: all 0.2s ease;
+            cursor: pointer;
+        }
+        .mouse-button:hover {
+            fill-opacity: 0.8;
+        }
+        .mouse-button.selected {
+            fill: #6600FF; /* kreo-accent */
+            stroke: white;
+            stroke-width: 2;
+            filter: drop-shadow(0 0 5px rgba(102, 0, 255, 0.9));
         }
     </style>
 </head>
@@ -68,7 +99,6 @@
                 
                 <!-- Back Button & Title -->
                 <div class="flex items-center mb-8">
-                    <!-- Updated hash link to trigger hashchange listener in JS -->
                     <a href="#dashboard" class="text-gray-400 hover:text-kreo-accent transition duration-150 flex items-center space-x-2">
                         <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path></svg>
                         <span class="text-lg font-medium hidden sm:inline">Back to Devices</span>
@@ -101,7 +131,7 @@
                                 DPI / Sensitivity
                             </div>
 
-                            <!-- Button Mapping Tab (Initially selected by JS onload) -->
+                            <!-- Button Mapping Tab -->
                             <div onclick="switchTab('buttons', this)" data-tab-name="buttons"
                                 class="tab-label p-3 rounded-lg text-center cursor-pointer bg-kreo-accent font-semibold text-white transition duration-150">
                                 Button Mapping
@@ -305,7 +335,6 @@
                 <div class="flex justify-center">
 
                     <!-- Single Harpy Mouse Card (Link targets the config page) -->
-                    <!-- Updated hash link to trigger hashchange listener in JS -->
                     <a href="#config-page" class="product-card-glow block rounded-xl p-6 bg-kreo-card shadow-lg hover:shadow-2xl transition-all duration-200 w-full max-w-sm">
                         <div class="flex flex-col items-center">
                             
@@ -347,7 +376,6 @@
         </main>
     </div>
 
-    <!-- INLINE JAVASCRIPT LOGIC (All functions from script.js are defined here) -->
     <script>
         // Store the state of the currently selected button
         let selectedButtonId = null; 
@@ -361,633 +389,7 @@
             'Side2': 'Back',
             'DPI': 'DPI Cycle',
         };
-
-        // --- WEBUSB FUNCTIONS (Placeholders for GitHub Pages implementation) ---
-        let harpyDevice = null;
-        // NOTE: These are placeholders. Replace with your actual mouse's IDs.
-        const VENDOR_ID = 0xABCD; 
-        const PRODUCT_ID = 0x1234; 
-
-        async function connectToMouse() {
-            if (!navigator.usb) {
-                // Using a custom UI function instead of alert()
-                alertModal('Error', 'WebUSB is not supported in this browser. Please use Chrome, Edge, or Opera over HTTPS.');
-                return;
-            }
-
-            try {
-                // Request the device from the user (requires user click)
-                const device = await navigator.usb.requestDevice({
-                    filters: [{ vendorId: VENDOR_ID, productId: PRODUCT_ID }]
-                });
-                
-                harpyDevice = device;
-                await harpyDevice.open();
-                
-                if (harpyDevice.configuration === null) {
-                    await harpyDevice.selectConfiguration(harpyDevice.configurations[0].configurationValue);
-                }
-                
-                // You would need to determine the correct interface number (e.g., 0)
-                // await harpyDevice.claimInterface(0); 
-                
-                updateConnectionStatus(true);
-                document.getElementById('connect-usb-btn').textContent = 'Connected!';
-                document.getElementById('connect-usb-btn').disabled = true;
-
-            } catch (error) {
-                updateConnectionStatus(false);
-                console.error("WebUSB connection failed:", error);
-                alertModal('Connection Failed', `Could not connect to the device. Error: ${error.message}`);
-            }
-        }
-
-        function updateConnectionStatus(isConnected) {
-            const dot = document.getElementById('connection-status-dot');
-            const text = document.getElementById('connection-status-text');
-
-            if (isConnected) {
-                dot.classList.remove('bg-gray-500');
-                dot.classList.add('bg-kreo-connected');
-                text.classList.remove('text-gray-400');
-                text.classList.add('text-kreo-connected');
-                text.textContent = 'Connected (USB)';
-            } else {
-                dot.classList.remove('bg-kreo-connected');
-                dot.classList.add('bg-gray-500');
-                text.classList.remove('text-kreo-connected');
-                text.classList.add('text-gray-400');
-                text.textContent = 'Disconnected';
-            }
-        }
-
-        function alertModal(title, message) {
-            // Placeholder for a proper UI modal (using console warn instead of alert)
-            console.warn(`[UI Alert - ${title}]: ${message}`);
-        }
-
-        // --- UI NAVIGATION FUNCTIONS ---
-
-        function switchTab(activeTab, clickedElement) {
-            document.querySelectorAll('.tab-content').forEach(panel => {
-                panel.style.display = 'none';
-            });
-
-            const activePanel = document.querySelector(`.tab-content[data-tab="${activeTab}"]`);
-            if (activePanel) {
-                activePanel.style.display = 'block';
-            }
-
-            document.querySelectorAll('.tab-label').forEach(label => {
-                label.classList.remove('bg-kreo-accent', 'font-semibold', 'text-white');
-                label.classList.add('bg-gray-800', 'hover:bg-gray-700', 'text-gray-200');
-            });
-            
-            if (clickedElement) {
-                clickedElement.classList.add('bg-kreo-accent', 'font-semibold', 'text-white');
-                clickedElement.classList.remove('bg-gray-800', 'hover:bg-gray-700', 'text-gray-200');
-            }
-
-            if (activeTab === 'dpi') {
-                const defaultProfile = document.querySelector('.profile-label[data-profile-name="general"]');
-                const defaultPolling = document.querySelector('.polling-label[data-rate="1000Hz"]');
-                // Ensure switchProfile and switchPolling are called only if elements exist
-                if (defaultProfile) switchProfile('general', defaultProfile);
-                if (defaultPolling) switchPolling('1000Hz', defaultPolling);
-            }
-            
-            if (activeTab !== 'buttons') {
-                clearButtonSelection();
-            }
-        }
-
-        function switchProfile(activeProfile, clickedElement) {
-            document.querySelectorAll('.profile-content').forEach(panel => {
-                panel.style.display = 'none';
-            });
-
-            const activePanel = document.querySelector(`.profile-content[data-profile="${activeProfile}"]`);
-            if (activePanel) {
-                activePanel.style.display = 'block';
-            }
-
-            document.querySelectorAll('.profile-label').forEach(label => {
-                label.classList.remove('bg-kreo-accent', 'font-semibold', 'text-white');
-                label.classList.add('bg-gray-700', 'hover:bg-gray-600', 'text-gray-200');
-            });
-
-            if (clickedElement) {
-                clickedElement.classList.add('bg-kreo-accent', 'font-semibold', 'text-white');
-                clickedElement.classList.remove('bg-gray-700', 'hover:bg-gray-600', 'text-gray-200');
-            }
-            console.log(`DPI Profile switched to: ${activeProfile}`);
-        }
-
-        function switchPolling(activeRate, clickedElement) {
-            document.querySelectorAll('.polling-label').forEach(label => {
-                label.classList.remove('bg-kreo-accent', 'font-semibold', 'text-white');
-                label.classList.add('bg-gray-700', 'hover:bg-gray-600', 'text-gray-200');
-            });
-
-            if (clickedElement) {
-                clickedElement.classList.add('bg-kreo-accent', 'font-semibold', 'text-white');
-                clickedElement.classList.remove('bg-gray-700', 'hover:bg-gray-600', 'text-gray-200');
-            }
-            console.log(`Polling Rate set to: ${activeRate}`);
-        }
-
-        // --- BUTTON MAPPING FUNCTIONS ---
-
-        function clearButtonSelection() {
-            document.querySelectorAll('.mouse-button').forEach(btn => {
-                btn.classList.remove('selected');
-            });
-            selectedButtonId = null;
-            document.getElementById('current-button-label').textContent = 'None Selected';
-            document.getElementById('current-assignment-label').textContent = 'Current Action: N/A';
-            document.getElementById('remap-controls').style.display = 'none';
-            document.getElementById('key-input').value = '';
-        }
-
-        function selectButton(buttonId, clickedElement) {
-            clearButtonSelection();
-
-            selectedButtonId = buttonId;
-            clickedElement.classList.add('selected');
-
-            const buttonNameMap = {
-                'LMB': 'Left Mouse Button',
-                'RMB': 'Right Mouse Button',
-                'MWH': 'Scroll Click',
-                'Side1': 'Side Button 1 (Forward)',
-                'Side2': 'Side Button 2 (Back)',
-                'DPI': 'DPI Switch Button'
-            };
-
-            document.getElementById('current-button-label').textContent = buttonNameMap[buttonId] || buttonId;
-            document.getElementById('current-assignment-label').textContent = `Current Action: ${buttonAssignments[buttonId]}`;
-            document.getElementById('remap-controls').style.display = 'block';
-            document.getElementById('key-input').focus();
-        }
-
-        function captureKey(event) {
-            event.preventDefault(); 
-            
-            const inputField = event.target;
-            let keyString = '';
-
-            if (event.ctrlKey) keyString += 'Ctrl+';
-            if (event.shiftKey) keyString += 'Shift+';
-            if (event.altKey) keyString += 'Alt+';
-            
-            if (event.key === ' ') {
-                keyString += 'Space';
-            } else if (event.key.length === 1 || event.key.startsWith('F') || event.key === 'Enter' || event.key === 'Tab') {
-                if (!event.ctrlKey && !event.shiftKey && !event.altKey || event.key.length === 1) {
-                    keyString += event.key.toUpperCase();
-                } else if (event.key.toUpperCase() !== 'CONTROL' && event.key.toUpperCase() !== 'SHIFT' && event.key.toUpperCase() !== 'ALT') {
-                    keyString += event.key.toUpperCase();
-                }
-            } else if (event.code.startsWith('Arrow')) {
-                keyString += event.code.replace('Arrow', '');
-            } else if (event.key === 'Control' || event.key === 'Shift' || event.key === 'Alt') {
-                // Prevent showing "Control+" twice if only modifier key is pressed
-                keyString = keyString.slice(0, -1);
-            }
-
-
-            if (keyString.endsWith('+')) {
-                keyString = keyString.slice(0, -1);
-            }
-            
-            if (keyString) {
-                inputField.value = keyString;
-            } else {
-                inputField.value = event.key.toUpperCase();
-            }
-
-            return false;
-        }
-
-
-        // --- INITIALIZATION ---
-        window.onload = () => {
-            // Set Button Mapping tab as active by default (based on last interaction)
-            const defaultTab = document.querySelector('.tab-label[data-tab-name="buttons"]');
-            
-            // Initial view state setup
-            if (window.location.hash === '#config-page') {
-                document.getElementById('config-page').style.display = 'block';
-                document.getElementById('dashboard').style.display = 'none';
-            } else {
-                document.getElementById('config-page').style.display = 'none';
-                document.getElementById('dashboard').style.display = 'block';
-            }
-
-            if (defaultTab) {
-                // Switch to default tab *after* initial view is set
-                switchTab('buttons', defaultTab);
-            }
-            
-            // Manually ensure DPI/Polling defaults are visible/styled correctly
-            const defaultProfile = document.querySelector('.profile-label[data-profile-name="general"]');
-            const defaultPolling = document.querySelector('.polling-label[data-rate="1000Hz"]');
-            
-            if (defaultProfile) {
-                document.querySelectorAll('.profile-content').forEach(panel => panel.style.display = 'none');
-                document.querySelector(`.profile-content[data-profile="general"]`).style.display = 'block';
-            }
-            if (defaultPolling) {
-                const pollingLabels = document.querySelectorAll('.polling-label');
-                pollingLabels.forEach(label => {
-                    label.classList.remove('bg-kreo-accent', 'font-semibold', 'text-white');
-                    label.classList.add('bg-gray-700', 'hover:bg-gray-600', 'text-gray-200');
-                });
-                defaultPolling.classList.add('bg-kreo-accent', 'font-semibold', 'text-white');
-                defaultPolling.classList.remove('bg-gray-700', 'hover:bg-gray-600', 'text-gray-200');
-            }
-            
-            
-            
-            // Add event listener for hash change to switch views dynamically
-            window.addEventListener('hashchange', function() {
-                if (window.location.hash === '#config-page') {
-                    document.getElementById('config-page').style.display = 'block';
-                    document.getElementById('dashboard').style.display = 'none';
-                } else {
-                    document.getElementById('config-page').style.display = 'none';
-                    document.getElementById('dashboard').style.display = 'block';
-                }
-            });
-
-        };
-    </script>
-</body>
-</html>
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Kreo Harpy Software</title>
-    <!-- Load Tailwind CSS -->
-    <script src="https://cdn.tailwindcss.com"></script>
-    
-    <!-- INLINE TAILWIND CONFIGURATION -->
-    <script>
-        tailwind.config = {
-            theme: {
-                extend: {
-                    colors: {
-                        'kreo-dark': '#111827', // Dark background
-                        'kreo-card': '#1f2937', // Card background (slightly lighter)
-                        'kreo-accent': '#9333ea', // Purple/Violet accent
-                        'kreo-connected': '#10b981', // Green for status
-                    },
-                    fontFamily: {
-                        sans: ['Inter', 'sans-serif'],
-                    }
-                }
-            }
-        }
-    </script>
-
-    <!-- INLINE CUSTOM CSS STYLES -->
-    <style>
-        .mouse-button {
-            cursor: pointer;
-            transition: fill 0.15s, stroke 0.15s;
-            opacity: 0.8;
-        }
-
-        .mouse-button:hover {
-            opacity: 1;
-            stroke: #9333ea !important; /* kreo-accent */
-        }
-
-        .mouse-button.selected {
-            opacity: 1;
-            fill: #9333ea !important; /* kreo-accent */
-            stroke: #c4b5fd !important; /* lighter accent */
-            box-shadow: 0 0 10px rgba(147, 51, 234, 0.7);
-        }
-
-        .product-card-glow:hover {
-            box-shadow: 0 10px 15px -3px rgba(147, 51, 234, 0.3), 0 4px 6px -2px rgba(147, 51, 234, 0.2);
-        }
-    </style>
-</head>
-<body class="bg-kreo-dark font-sans text-white min-h-screen p-4 sm:p-8">
-
-    <div class="container mx-auto">
         
-        <!-- Header / Main Title (Visible on both pages) -->
-        <header class="text-center mb-12 pt-6">
-            <h1 class="text-4xl sm:text-5xl font-extrabold tracking-tight uppercase">Kreo Harpy Software</h1>
-        </header>
-
-        <!-- Main Content Area -->
-        <main class="w-full">
-            
-            <!-- VIEW 2: HARPY CONFIG PAGE -->
-            <section id="config-page" class="p-4 sm:p-8">
-                
-                <!-- Back Button & Title -->
-                <div class="flex items-center mb-8">
-                    <!-- Updated hash link to trigger hashchange listener in JS -->
-                    <a href="#dashboard" class="text-gray-400 hover:text-kreo-accent transition duration-150 flex items-center space-x-2">
-                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path></svg>
-                        <span class="text-lg font-medium hidden sm:inline">Back to Devices</span>
-                    </a>
-                    <h2 class="text-3xl font-bold ml-4 sm:ml-8">Harpy Configuration</h2>
-                </div>
-
-                <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
-                    
-                    <!-- COLUMN 1: Visual and Navigation Sidebar -->
-                    <div class="lg:col-span-1 bg-kreo-card rounded-xl p-6 shadow-xl">
-                        
-                        <!-- Mouse Image Placeholder -->
-                        <div class="mb-6 text-center">
-                            <img src="https://placehold.co/300x200/1c1c1c/ffffff?text=HARPY+MOUSE+VIEW" 
-                                 alt="3D View of Harpy Mouse" 
-                                 class="w-full h-auto object-contain rounded-lg border-2 border-gray-700"
-                                 onerror="this.onerror=null; this.src='images/harpy-mouse-3d.png';" />
-                            <p class="text-gray-500 text-xs mt-2">Kreo Harpy Wired | Serial: XYZ123</p>
-                        </div>
-
-                        <hr class="border-gray-800 mb-6">
-
-                        <!-- Config Navigation Tabs (JS Controlled) -->
-                        <div class="flex flex-col space-y-3" id="config-tabs-nav">
-                            
-                            <!-- DPI Tab -->
-                            <div onclick="switchTab('dpi', this)" data-tab-name="dpi"
-                                class="tab-label p-3 rounded-lg text-center cursor-pointer bg-gray-800 hover:bg-gray-700 text-gray-200 transition duration-150">
-                                DPI / Sensitivity
-                            </div>
-
-                            <!-- Button Mapping Tab (Initially selected by JS onload) -->
-                            <div onclick="switchTab('buttons', this)" data-tab-name="buttons"
-                                class="tab-label p-3 rounded-lg text-center cursor-pointer bg-kreo-accent font-semibold text-white transition duration-150">
-                                Button Mapping
-                            </div>
-
-                            <!-- RGB Lighting Tab -->
-                            <div onclick="switchTab('rgb', this)" data-tab-name="rgb"
-                                class="tab-label p-3 rounded-lg text-center cursor-pointer bg-gray-800 hover:bg-gray-700 text-gray-200 transition duration-150">
-                                RGB Lighting
-                            </div>
-                        </div>
-
-                    </div>
-
-                    <!-- COLUMN 2: Main Settings Panel -->
-                    <div class="lg:col-span-2 bg-kreo-card rounded-xl p-6 shadow-xl">
-                        
-                        <!-- DPI / SENSITIVITY PANEL -->
-                        <div class="tab-content" data-tab="dpi" style="display: none;">
-                            <h3 class="text-2xl font-semibold text-kreo-accent mb-6">DPI & Profiles</h3>
-                            
-                            <!-- POLLING RATE SECTION -->
-                            <div class="mb-8 p-4 rounded-xl border border-gray-700 bg-gray-800">
-                                <p class="block text-lg font-medium mb-3 text-gray-200">Polling Rate</p>
-                                <div class="flex flex-wrap gap-4">
-                                    <div onclick="switchPolling('1000Hz', this)" data-rate="1000Hz" class="polling-label text-sm p-2 px-4 rounded-lg cursor-pointer transition duration-150 bg-kreo-accent font-semibold text-white">1000Hz</div>
-                                    <div onclick="switchPolling('500Hz', this)" data-rate="500Hz" class="polling-label text-sm p-2 px-4 rounded-lg cursor-pointer transition duration-150 bg-gray-700 hover:bg-gray-600 text-gray-200">500Hz</div>
-                                    <div onclick="switchPolling('250Hz', this)" data-rate="250Hz" class="polling-label text-sm p-2 px-4 rounded-lg cursor-pointer transition duration-150 bg-gray-700 hover:bg-gray-600 text-gray-200">250Hz</div>
-                                    <div onclick="switchPolling('125Hz', this)" data-rate="125Hz" class="polling-label text-sm p-2 px-4 rounded-lg cursor-pointer transition duration-150 bg-gray-700 hover:bg-gray-600 text-gray-200">125Hz</div>
-                                </div>
-                            </div>
-
-                            <hr class="border-gray-800 mb-6">
-                            
-                            <!-- DPI PROFILE SELECTION -->
-                            <div class="mb-8">
-                                <p class="block text-lg font-medium mb-3 text-gray-200">DPI Profile</p>
-                                <div class="flex flex-wrap gap-3" id="profile-nav">
-                                    <div onclick="switchProfile('general', this)" data-profile-name="general" class="profile-label p-2 px-4 rounded-lg cursor-pointer text-sm border-2 border-transparent transition duration-150 bg-kreo-accent font-semibold text-white">General</div>
-                                    <div onclick="switchProfile('fps', this)" data-profile-name="fps" class="profile-label p-2 px-4 rounded-lg cursor-pointer text-sm border-2 border-transparent transition duration-150 bg-gray-700 hover:bg-gray-600 text-gray-200">FPS</div>
-                                    <div onclick="switchProfile('mmo', this)" data-profile-name="mmo" class="profile-label p-2 px-4 rounded-lg cursor-pointer text-sm border-2 border-transparent transition duration-150 bg-gray-700 hover:bg-gray-600 text-gray-200">MMO</div>
-                                </div>
-                            </div>
-
-                            <!-- DPI STAGES CONTENT -->
-                            <div class="profile-content" data-profile="general" style="display: block;">
-                                <h4 class="text-xl font-semibold mb-4 text-gray-200">DPI Stages (General)</h4>
-                                <p class="text-gray-500 text-sm mb-4">Set 4 distinct DPI stages to cycle through using the dedicated DPI button. Values change in increments of 200 up to 12800 DPI.</p>
-                                <div class="space-y-3">
-                                    <div class="flex flex-wrap sm:flex-nowrap items-center space-x-0 sm:space-x-4 bg-gray-800 p-3 rounded-lg"><span class="font-medium w-full sm:w-20 mb-2 sm:mb-0">Stage 1:</span><input type="number" value="800" min="200" max="12800" step="200" class="flex-grow p-2 rounded bg-gray-700 border border-gray-600 text-white focus:ring-kreo-accent focus:border-kreo-accent"><span class="text-sm text-gray-400 ml-2">DPI</span></div>
-                                    <div class="flex flex-wrap sm:flex-nowrap items-center space-x-0 sm:space-x-4 bg-gray-800 p-3 rounded-lg"><span class="font-medium w-full sm:w-20 mb-2 sm:mb-0">Stage 2:</span><input type="number" value="1600" min="200" max="12800" step="200" class="flex-grow p-2 rounded bg-gray-700 border border-gray-600 text-white focus:ring-kreo-accent focus:border-kreo-accent"><span class="text-sm text-gray-400 ml-2">DPI</span></div>
-                                    <div class="flex flex-wrap sm:flex-nowrap items-center space-x-0 sm:space-x-4 bg-gray-800 p-3 rounded-lg"><span class="font-medium w-full sm:w-20 mb-2 sm:mb-0">Stage 3:</span><input type="number" value="3200" min="200" max="12800" step="200" class="flex-grow p-2 rounded bg-gray-700 border border-gray-600 text-white focus:ring-kreo-accent focus:border-kreo-accent"><span class="text-sm text-gray-400 ml-2">DPI</span></div>
-                                    <div class="flex flex-wrap sm:flex-nowrap items-center space-x-0 sm:space-x-4 bg-gray-800 p-3 rounded-lg"><span class="font-medium w-full sm:w-20 mb-2 sm:mb-0">Stage 4:</span><input type="number" value="6400" min="200" max="12800" step="200" class="flex-grow p-2 rounded bg-gray-700 border border-gray-600 text-white focus:ring-kreo-accent focus:border-kreo-accent"><span class="text-sm text-gray-400 ml-2">DPI</span></div>
-                                </div>
-                            </div>
-                            
-                            <div class="profile-content" data-profile="fps" style="display: none;">
-                                <h4 class="text-xl font-semibold mb-4 text-gray-200">DPI Stages (FPS)</h4>
-                                <p class="text-gray-500 text-sm mb-4">Optimized settings for precise aiming and fast turns.</p>
-                                <div class="space-y-3">
-                                    <div class="flex flex-wrap sm:flex-nowrap items-center space-x-0 sm:space-x-4 bg-gray-800 p-3 rounded-lg"><span class="font-medium w-full sm:w-20 mb-2 sm:mb-0">Sniper:</span><input type="number" value="400" min="200" max="12800" step="200" class="flex-grow p-2 rounded bg-gray-700 border border-gray-600 text-white focus:ring-kreo-accent focus:border-kreo-accent"><span class="text-sm text-gray-400 ml-2">DPI</span></div>
-                                    <div class="flex flex-wrap sm:flex-nowrap items-center space-x-0 sm:space-x-4 bg-gray-800 p-3 rounded-lg"><span class="font-medium w-full sm:w-20 mb-2 sm:mb-0">Normal:</span><input type="number" value="800" min="200" max="12800" step="200" class="flex-grow p-2 rounded bg-gray-700 border border-gray-600 text-white focus:ring-kreo-accent focus:border-kreo-accent"><span class="text-sm text-gray-400 ml-2">DPI</span></div>
-                                </div>
-                            </div>
-
-                            <div class="profile-content" data-profile="mmo" style="display: none;">
-                                <h4 class="text-xl font-semibold mb-4 text-gray-200">DPI Stages (MMO)</h4>
-                                <p class="text-gray-500 text-sm mb-4">High DPI for rapid camera movement and cursor navigation.</p>
-                                <div class="space-y-3">
-                                    <div class="flex flex-wrap sm:flex-nowrap items-center space-x-0 sm:space-x-4 bg-gray-800 p-3 rounded-lg"><span class="font-medium w-full sm:w-20 mb-2 sm:mb-0">Movement:</span><input type="number" value="3200" min="200" max="12800" step="200" class="flex-grow p-2 rounded bg-gray-700 border border-gray-600 text-white focus:ring-kreo-accent focus:border-kreo-accent"><span class="text-sm text-gray-400 ml-2">DPI</span></div>
-                                    <div class="flex flex-wrap sm:flex-nowrap items-center space-x-0 sm:space-x-4 bg-gray-800 p-3 rounded-lg"><span class="font-medium w-full sm:w-20 mb-2 sm:mb-0">Max Speed:</span><input type="number" value="12800" min="200" max="12800" step="200" class="flex-grow p-2 rounded bg-gray-700 border border-gray-600 text-white focus:ring-kreo-accent focus:border-kreo-accent"><span class="text-sm text-gray-400 ml-2">DPI</span></div>
-                                </div>
-                            </div>
-                        </div>
-
-                        <!-- BUTTON MAPPING PANEL -->
-                        <div class="tab-content" data-tab="buttons" style="display: block;">
-                            <h3 class="text-2xl font-semibold text-kreo-accent mb-6">Button Mapping</h3>
-                            <p class="text-gray-400 mb-6">Click any highlighted button on the mouse diagram to select it for re-mapping.</p>
-                            
-                            <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
-                                
-                                <!-- Column 1: Interactive Mouse SVG Diagram -->
-                                <div class="bg-gray-900 p-4 rounded-xl shadow-inner flex justify-center items-center">
-                                    <!-- Simplified SVG Mouse Diagram -->
-                                    <svg viewBox="0 0 100 150" class="w-full max-w-xs h-auto" fill="none" xmlns="http://www.w3.org/2000/svg">
-                                        
-                                        <!-- Mouse Body (Gray background) -->
-                                        <path d="M15 10 C 15 5 20 5 85 5 C 85 5 90 5 90 10 L 90 140 C 90 145 85 145 15 145 C 15 145 10 145 10 140 L 10 10 Z" fill="#374151" stroke="#4B5563" stroke-width="2"/>
-
-                                        <!-- Button 1: Left Click (LMB) -->
-                                        <rect id="btn-LMB" data-button="LMB" x="15" y="10" width="37" height="60" rx="5" ry="5" fill="#1a1a1a" stroke="#4B5563" stroke-width="2" class="mouse-button" onclick="selectButton('LMB', this)"/>
-                                        <text x="33" y="40" font-family="Inter" font-size="8" fill="white" text-anchor="middle" style="pointer-events: none;">LMB (1)</text>
-
-                                        <!-- Button 2: Right Click (RMB) -->
-                                        <rect id="btn-RMB" data-button="RMB" x="53" y="10" width="37" height="60" rx="5" ry="5" fill="#1a1a1a" stroke="#4B5563" stroke-width="2" class="mouse-button" onclick="selectButton('RMB', this)"/>
-                                        <text x="71" y="40" font-family="Inter" font-size="8" fill="white" text-anchor="middle" style="pointer-events: none;">RMB (2)</text>
-                                        
-                                        <!-- Button 3: Scroll Wheel Click (MWH) -->
-                                        <rect id="btn-MWH" data-button="MWH" x="45" y="20" width="10" height="30" rx="4" ry="4" fill="#1a1a1a" stroke="#4B5563" stroke-width="2" class="mouse-button" onclick="selectButton('MWH', this)"/>
-                                        <text x="50" y="58" font-family="Inter" font-size="6" fill="white" text-anchor="middle" style="pointer-events: none;">Scroll (3)</text>
-                                        
-                                        <!-- Button 4: Side Button 1 (Side1) -->
-                                        <rect id="btn-Side1" data-button="Side1" x="10" y="75" width="5" height="15" rx="2" ry="2" fill="#1a1a1a" stroke="#4B5563" stroke-width="1.5" class="mouse-button" onclick="selectButton('Side1', this)"/>
-                                        <text x="14" y="95" font-family="Inter" font-size="6" fill="white" text-anchor="middle" style="pointer-events: none;">Side (4)</text>
-
-                                        <!-- Button 5: Side Button 2 (Side2) -->
-                                        <rect id="btn-Side2" data-button="Side2" x="10" y="95" width="5" height="15" rx="2" ry="2" fill="#1a1a1a" stroke="#4B5563" stroke-width="1.5" class="mouse-button" onclick="selectButton('Side2', this)"/>
-                                        <text x="14" y="115" font-family="Inter" font-size="6" fill="white" text-anchor="middle" style="pointer-events: none;">Side (5)</text>
-
-                                        <!-- Button 6: DPI Button (DPI) -->
-                                        <rect id="btn-DPI" data-button="DPI" x="43" y="65" width="14" height="8" rx="2" ry="2" fill="#1a1a1a" stroke="#4B5563" stroke-width="1.5" class="mouse-button" onclick="selectButton('DPI', this)"/>
-                                        <text x="50" y="80" font-family="Inter" font-size="6" fill="white" text-anchor="middle" style="pointer-events: none;">DPI (6)</text>
-
-                                    </svg>
-                                </div>
-                                
-                                <!-- Column 2: Remapping Interface -->
-                                <div class="space-y-6">
-                                    <div class="bg-gray-800 p-4 rounded-xl">
-                                        <label for="current-button-label" class="block text-lg font-medium mb-2 text-gray-200">Selected Button</label>
-                                        <p id="current-button-label" class="text-3xl font-bold text-kreo-accent">None Selected</p>
-                                        <p id="current-assignment-label" class="text-md text-gray-400 mt-1">Current Action: N/A</p>
-                                    </div>
-
-                                    <div id="remap-controls" class="space-y-4 pt-4 border-t border-gray-700" style="display: none;">
-                                        <h4 class="text-xl font-semibold text-gray-200">Assign New Action</h4>
-                                        
-                                        <!-- Action Type Selector -->
-                                        <div>
-                                            <label for="action-type" class="block text-sm font-medium mb-1 text-gray-400">Action Type</label>
-                                            <select id="action-type" class="w-full p-2 rounded bg-gray-700 border border-gray-600 focus:ring-kreo-accent focus:border-kreo-accent text-white">
-                                                <option>Keyboard Key</option>
-                                                <option>Mouse Function (LMB, RMB, etc.)</option>
-                                                <option>Macro</option>
-                                                <option>DPI Cycle</option>
-                                                <option>Disable</option>
-                                            </select>
-                                        </div>
-
-                                        <!-- Key Input -->
-                                        <div>
-                                            <label for="key-input" class="block text-sm font-medium mb-1 text-gray-400">Press Key or Type Macro Name</label>
-                                            <input type="text" id="key-input" placeholder="Press a key (e.g., 'G', 'Shift+2')" 
-                                                   class="w-full p-2 rounded bg-gray-700 border border-gray-600 text-white focus:ring-kreo-accent focus:border-kreo-accent"
-                                                   onkeydown="captureKey(event)">
-                                        </div>
-
-                                        <!-- Apply Button -->
-                                        <button class="w-full py-3 bg-kreo-accent font-bold rounded-lg hover:bg-opacity-90 transition duration-150 shadow-lg shadow-purple-900/40">
-                                            Apply Assignment
-                                        </button>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-
-                        <!-- RGB LIGHTING PANEL -->
-                        <div class="tab-content" data-tab="rgb" style="display: none;">
-                            <h3 class="text-2xl font-semibold text-kreo-accent mb-6">RGB Lighting</h3>
-                            <p class="text-gray-400 mb-4">Customize the color and effect of your Harpy's LED lighting.</p>
-                            
-                            <!-- Effect Selector Placeholder -->
-                            <div class="mb-8">
-                                <label for="effect-select" class="block text-lg font-medium mb-3">Lighting Effect</label>
-                                <select id="effect-select" class="w-full p-3 rounded-lg bg-gray-700 border border-gray-600 focus:ring-kreo-accent focus:border-kreo-accent text-white">
-                                    <option>Wave (Active)</option>
-                                    <option>Breathing</option>
-                                    <option>Static Color</option>
-                                    <option>Spectrum Cycling</option>
-                                </select>
-                            </div>
-
-                            <!-- Color Picker Placeholder -->
-                            <div class="mb-8">
-                                <label class="block text-lg font-medium mb-3">Selected Color</label>
-                                <div class="flex items-center space-x-4">
-                                    <div class="w-10 h-10 rounded-full border-2 border-white bg-[#00AAFF]"></div>
-                                    <div class="w-10 h-10 rounded-full border-2 border-gray-700 bg-[#FF0000]"></div>
-                                    <div class="w-10 h-10 rounded-full border-2 border-gray-700 bg-[#00FF00]"></div>
-                                    <div class="w-10 h-10 rounded-full border-2 border-gray-700 bg-[#FF00FF]"></div>
-                                </div>
-                                <p class="text-gray-500 text-sm mt-2">Current Color Code: #00AAFF</p>
-                            </div>
-                        </div>
-                        
-                    </div>
-                </div>
-            </section>
-            
-            <!-- VIEW 1: DASHBOARD -->
-            <section id="dashboard" class="p-4 sm:p-8">
-                
-                <!-- Selection Heading -->
-                <div class="mb-8 text-center">
-                    <h2 class="text-2xl font-bold text-gray-200 mb-2">Connected Device</h2>
-                    <p class="text-gray-400 text-sm">Click the Harpy Gaming Mouse to view its configuration.</p>
-                </div>
-
-                <!-- Product Display (Centered single card) -->
-                <div class="flex justify-center">
-
-                    <!-- Single Harpy Mouse Card (Link targets the config page) -->
-                    <!-- Updated hash link to trigger hashchange listener in JS -->
-                    <a href="#config-page" class="product-card-glow block rounded-xl p-6 bg-kreo-card shadow-lg hover:shadow-2xl transition-all duration-200 w-full max-w-sm">
-                        <div class="flex flex-col items-center">
-                            
-                            <!-- Product Image Placeholder -->
-                            <div class="mb-4 bg-gray-900 p-4 rounded-lg">
-                                <img src="https://placehold.co/150x150/1c1c1c/ffffff?text=KREO+HARPY+MOUSE" 
-                                     alt="Kreo Harpy Gaming Mouse" 
-                                     class="w-36 h-36 object-contain"
-                                     onerror="this.onerror=null; this.src='images/harpy-mouse-dashboard.png';" />
-                            </div>
-
-                            <!-- Product Name -->
-                            <h3 class="text-2xl font-semibold mb-1 text-center">Harpy</h3>
-                            <p class="text-sm text-gray-500 mb-4 text-center">Gaming Mouse</p>
-
-                            <!-- Status and Button Group (WebUSB Ready) -->
-                            <div class="w-full flex justify-between items-center mt-3">
-                                
-                                <!-- Status Indicator: Disconnected by Default -->
-                                <div class="flex items-center space-x-2">
-                                    <span class="h-3 w-3 bg-gray-500 rounded-full" id="connection-status-dot"></span>
-                                    <span class="text-gray-400 font-medium text-sm" id="connection-status-text">Disconnected</span>
-                                </div>
-
-                                <!-- Connection Button (Replaced View Config) -->
-                                <button id="connect-usb-btn" onclick="connectToMouse()" 
-                                    class="px-3 py-1 bg-kreo-accent text-white text-sm font-medium rounded-md shadow-md hover:bg-opacity-90 transition duration-150">
-                                    Connect Device
-                                </button>
-                            </div>
-                        </div>
-                    </a>
-
-                </div>
-                <!-- End Product Display -->
-
-            </section>
-
-        </main>
-    </div>
-
-    <!-- INLINE JAVASCRIPT LOGIC (All functions from script.js are defined here) -->
-    <script>
-        // Store the state of the currently selected button
-        let selectedButtonId = null; 
-
-        // Initial button assignments (mock data)
-        const buttonAssignments = {
-            'LMB': 'Primary Click (Default)',
-            'RMB': 'Secondary Click (Default)',
-            'MWH': 'Scroll Wheel Click',
-            'Side1': 'Forward',
-            'Side2': 'Back',
-            'DPI': 'DPI Cycle',
-        };
-
         // --- WEBUSB FUNCTIONS (Placeholders for GitHub Pages implementation) ---
         let harpyDevice = null;
         // NOTE: These are placeholders. Replace with your actual mouse's IDs.
@@ -1048,10 +450,10 @@
         }
 
         function alertModal(title, message) {
-            // Placeholder for a proper UI modal (using console warn instead of alert)
+            // Placeholder for a proper UI modal
             console.warn(`[UI Alert - ${title}]: ${message}`);
         }
-
+        
         // --- UI NAVIGATION FUNCTIONS ---
 
         function switchTab(activeTab, clickedElement) {
@@ -1077,7 +479,6 @@
             if (activeTab === 'dpi') {
                 const defaultProfile = document.querySelector('.profile-label[data-profile-name="general"]');
                 const defaultPolling = document.querySelector('.polling-label[data-rate="1000Hz"]');
-                // Ensure switchProfile and switchPolling are called only if elements exist
                 if (defaultProfile) switchProfile('general', defaultProfile);
                 if (defaultPolling) switchPolling('1000Hz', defaultPolling);
             }
@@ -1106,7 +507,6 @@
                 clickedElement.classList.add('bg-kreo-accent', 'font-semibold', 'text-white');
                 clickedElement.classList.remove('bg-gray-700', 'hover:bg-gray-600', 'text-gray-200');
             }
-            console.log(`DPI Profile switched to: ${activeProfile}`);
         }
 
         function switchPolling(activeRate, clickedElement) {
@@ -1176,11 +576,7 @@
                 }
             } else if (event.code.startsWith('Arrow')) {
                 keyString += event.code.replace('Arrow', '');
-            } else if (event.key === 'Control' || event.key === 'Shift' || event.key === 'Alt') {
-                // Prevent showing "Control+" twice if only modifier key is pressed
-                keyString = keyString.slice(0, -1);
             }
-
 
             if (keyString.endsWith('+')) {
                 keyString = keyString.slice(0, -1);
@@ -1200,18 +596,7 @@
         window.onload = () => {
             // Set Button Mapping tab as active by default (based on last interaction)
             const defaultTab = document.querySelector('.tab-label[data-tab-name="buttons"]');
-            
-            // Initial view state setup
-            if (window.location.hash === '#config-page') {
-                document.getElementById('config-page').style.display = 'block';
-                document.getElementById('dashboard').style.display = 'none';
-            } else {
-                document.getElementById('config-page').style.display = 'none';
-                document.getElementById('dashboard').style.display = 'block';
-            }
-
             if (defaultTab) {
-                // Switch to default tab *after* initial view is set
                 switchTab('buttons', defaultTab);
             }
             
@@ -1224,28 +609,20 @@
                 document.querySelector(`.profile-content[data-profile="general"]`).style.display = 'block';
             }
             if (defaultPolling) {
-                const pollingLabels = document.querySelectorAll('.polling-label');
-                pollingLabels.forEach(label => {
+                 const pollingLabels = document.querySelectorAll('.polling-label');
+                 pollingLabels.forEach(label => {
                     label.classList.remove('bg-kreo-accent', 'font-semibold', 'text-white');
                     label.classList.add('bg-gray-700', 'hover:bg-gray-600', 'text-gray-200');
-                });
-                defaultPolling.classList.add('bg-kreo-accent', 'font-semibold', 'text-white');
-                defaultPolling.classList.remove('bg-gray-700', 'hover:bg-gray-600', 'text-gray-200');
+                 });
+                 defaultPolling.classList.add('bg-kreo-accent', 'font-semibold', 'text-white');
+                 defaultPolling.classList.remove('bg-gray-700', 'hover:bg-gray-600', 'text-gray-200');
             }
             
-            
-            
-            // Add event listener for hash change to switch views dynamically
-            window.addEventListener('hashchange', function() {
-                if (window.location.hash === '#config-page') {
-                    document.getElementById('config-page').style.display = 'block';
-                    document.getElementById('dashboard').style.display = 'none';
-                } else {
-                    document.getElementById('config-page').style.display = 'none';
-                    document.getElementById('dashboard').style.display = 'block';
-                }
-            });
-
+            // Handle initial view if URL hash is present
+            if (window.location.hash === '#config-page') {
+                document.getElementById('config-page').style.display = 'block';
+                document.getElementById('dashboard').style.display = 'none';
+            }
         };
     </script>
 </body>
