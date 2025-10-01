@@ -1,1 +1,113 @@
+body {
+  font-family: Arial, sans-serif;
+  margin: 16px;
+  background: #121212;
+  color: #ddd;
+}
+
+h1, h2, h3 {
+  color: #6600FF;
+}
+
+.status-dot {
+  display: inline-block;
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  margin-left: 12px;
+}
+
+.status-dot.disconnected {
+  background-color: #555;
+}
+
+.status-dot.connected {
+  background-color: #6f0;
+}
+
+.status-text.disconnected {
+  color: #777;
+  margin-left: 6px;
+}
+
+.status-text.connected {
+  color: #6f0;
+  margin-left: 6px;
+}
+
+.page {
+  display: none;
+}
+
+.page.active {
+  display: block;
+}
+
+.tabs {
+  margin-top: 16px;
+}
+
+.tab {
+  background: #1a1a1a;
+  border: none;
+  padding: 8px 12px;
+  color: #aaa;
+  cursor: pointer;
+  margin-right: 6px;
+  border-radius: 4px 4px 0 0;
+}
+
+.tab.active {
+  background: #6600FF;
+  color: white;
+}
+
+.tab-content {
+  background: #222;
+  padding: 12px;
+  border-radius: 0 4px 4px 4px;
+  margin-bottom: 16px;
+  display: none;
+}
+
+.tab-content.active {
+  display: block;
+}
+
+.polling-rate label {
+  margin-right: 10px;
+}
+
+.dpi-profiles button {
+  margin: 6px;
+  padding: 6px 10px;
+  background: #333;
+  border: none;
+  color: #ccc;
+  cursor: pointer;
+}
+
+.dpi-profiles button.active {
+  background: #6600FF;
+  color: white;
+}
+
+.button {
+  display: inline-block;
+  background-color: #6600FF;
+  color: white;
+  padding: 10px 16px;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  text-decoration: none;
+  margin-top: 10px;
+}
+
+img {
+  max-width: 300px;
+  height: auto;
+  display: block;
+  margin: 12px 0;
+}
 
